@@ -1,3 +1,4 @@
+from new_data import SequenceNewDataProvider
 import os
 import tensorflow as tf
 import sys
@@ -8,7 +9,6 @@ import utils2
 from test_classes.qual_test import retrieve_qualitative_examples
 from test_classes.quan_test import retrieve_quantitative_results_parallel
 sys.path.append('../data')
-from new_data import SequenceNewDataProvider
 
 
 class TestFramework(object):
@@ -25,44 +25,44 @@ class TestFramework(object):
         VALDATA_PATH = dataset + '/new_tfvaldata'
 
         val_data_path = VALDATA_PATH
-        if args.on_val==0:
+        if args.on_val == 0:
             val_data_path = DATA_PATH
 
-        shuffle_flag = args.fancy_test==0
+        shuffle_flag = args.fancy_test == 0
 
         sources = [
-                'full_particles',
-                args.is_moving,
-                'is_acting']
-        if args.with_coll==1:
+            'full_particles',
+            args.is_moving,
+            'is_acting']
+        if args.with_coll == 1:
             sources.append('collision')
-        if args.with_self==1:
+        if args.with_self == 1:
             sources.append('self_collision')
-        if args.with_static==1:
+        if args.with_static == 1:
             sources.append('static_collision')
-        if args.vary_grav==1:
+        if args.vary_grav == 1:
             sources.append('gravity')
-        if args.vary_stiff==1:
+        if args.vary_stiff == 1:
             sources.append('stiffness')
 
         data_init_params = {
-                'data': utils2.combine_interaction_data(
-                    [val_data_path],
-                    [2*256*4],
-                    [args.group_file],
-                    ),
-                'is_training': shuffle_flag,
-                'enqueue_batch_size': 256,
-                'sources': sources,
-                'sequence_len': args.seq_len,
-                'delta_time': 1,
-                'filter_rule': None,
-                'shuffle_seed' : args.test_seed,
-                'special_delta': 1,
-                'buffer_size': 512,
-                'shuffle_queue': False,
-                'num_cores': 1,
-                }
+            'data': utils2.combine_interaction_data(
+                [val_data_path],
+                [2*256*4],
+                [args.group_file],
+            ),
+            'is_training': shuffle_flag,
+            'enqueue_batch_size': 256,
+            'sources': sources,
+            'sequence_len': args.seq_len,
+            'delta_time': 1,
+            'filter_rule': None,
+            'shuffle_seed': args.test_seed,
+            'special_delta': 1,
+            'buffer_size': 512,
+            'shuffle_queue': False,
+            'num_cores': 1,
+        }
 
         data_provider = SequenceNewDataProvider(**data_init_params)
         self.inputs = data_provider.input_fn(args.MODEL_BATCH_SIZE)
@@ -82,9 +82,9 @@ class TestFramework(object):
     def build_sess_and_saver(self):
         gpu_options = tf.GPUOptions(allow_growth=True)
         sess = tf.Session(config=tf.ConfigProto(
-                allow_soft_placement=True,
-                gpu_options=gpu_options,
-                ))
+            allow_soft_placement=True,
+            gpu_options=gpu_options,
+        ))
         self.sess = sess
         self.saver = tf.train.Saver()
 
@@ -107,12 +107,12 @@ class TestFramework(object):
     def run_quantitative_test(self):
         n_validation_examples = 32
         retrieve_quantitative_results_parallel(
-                self.sess, self.outputs,
-                n_validation_examples, self.args)
+            self.sess, self.outputs,
+            n_validation_examples, self.args)
 
     def run_qualitative_test(self):
         retrieve_qualitative_examples(
-                self.sess, self.outputs, self.args)
+            self.sess, self.outputs, self.args)
 
 
 def main():

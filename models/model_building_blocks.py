@@ -31,7 +31,7 @@ class ConvNetBase(object):
             init = tf.contrib.layers.xavier_initializer(seed=self.seed)
         elif kind == 'trunc_norm':
             init = tf.truncated_normal_initializer(
-                    mean=0, stddev=stddev, seed=self.seed)
+                mean=0, stddev=stddev, seed=self.seed)
         elif kind == 'from_file':
             params = np.load(init_file)
             init = {}
@@ -59,17 +59,17 @@ class ConvNet(ConvNetBase):
             self._params[name] = OrderedDict()
         if value['type'] in self._params[name]:
             self._params[name][value['type']]['input'] \
-                    = self._params[name][value['type']]['input'] \
-                    + ',' + value['input']
+                = self._params[name][value['type']]['input'] \
+                + ',' + value['input']
         else:
             self._params[name][value['type']] = value
 
     def activation(self, kind='relu', alpha=0.01, in_layer=None):
         if in_layer is None:
-                in_layer = self.output
+            in_layer = self.output
         last_axis = len(in_layer.get_shape().as_list()) - 1
         if type(kind) != list:
-                kind = [kind]
+            kind = [kind]
         for_out = []
         for k in kind:
             if self.debug:
@@ -83,7 +83,7 @@ class ConvNet(ConvNetBase):
             elif k == 'leaky_relu':
                 for_out.append(tf.maximum(in_layer, alpha * in_layer))
             elif k == 'tanh':
-                for_out.append(tf.tanh(in_layer, name = 'tanh'))
+                for_out.append(tf.tanh(in_layer, name='tanh'))
             elif k == 'square':
                 if self.debug:
                     print('square nonlinearity!')
@@ -94,7 +94,7 @@ class ConvNet(ConvNetBase):
             elif k == 'neg_relu':
                 if self.debug:
                     print('neg relu')
-                for_out.append(tf.nn.relu(-in_layer, name = 'neg_relu'))
+                for_out.append(tf.nn.relu(-in_layer, name='neg_relu'))
             elif k == 'square_relu':
                 if self.debug:
                     print('square relu')
@@ -106,7 +106,7 @@ class ConvNet(ConvNetBase):
                 rel_in = tf.nn.relu(-in_layer)
                 for_out.append(rel_in * rel_in)
             elif k == 'square_crelu':
-                crel = tf.nn.crelu(in_layer, name = 'crelu')
+                crel = tf.nn.crelu(in_layer, name='crelu')
                 for_out.append(crel * crel)
             elif k == 'identity':
                 if self.debug:
@@ -114,12 +114,12 @@ class ConvNet(ConvNetBase):
                 for_out.append(in_layer)
             elif k == 'zeroflat':
                 zthres = tf.get_variable(
-                        initializer=tf.constant_initializer(0.1),
-                        shape=[1],
-                        dtype=tf.float32,
-                        name='zero_threshold')
+                    initializer=tf.constant_initializer(0.1),
+                    shape=[1],
+                    dtype=tf.float32,
+                    name='zero_threshold')
                 rel_in = tf.nn.relu(in_layer - tf.abs(zthres)) - \
-                        tf.nn.relu(-in_layer - tf.abs(zthres))
+                    tf.nn.relu(-in_layer - tf.abs(zthres))
                 for_out.append(rel_in)
             else:
                 raise ValueError("Activation %s not defined" % (k))
@@ -150,23 +150,23 @@ class ConvNet(ConvNetBase):
             print(in_layer)
             print([in_layer.get_shape().as_list()[0], -1])
 
-        #let's assume things are flattened, ok?
+        # let's assume things are flattened, ok?
         resh = in_layer
         resh_shape = resh.get_shape().as_list()
         in_shape = resh_shape[:-2] + [resh_shape[-1]]
         if init != 'from_file':
             kernel = tf.get_variable(
-                    initializer=self.initializer(init, stddev=stddev),
-                    shape=in_shape + out_shape,
-                    dtype=tf.float32,
-                    name='weights',
-                    trainable=trainable)
+                initializer=self.initializer(init, stddev=stddev),
+                shape=in_shape + out_shape,
+                dtype=tf.float32,
+                name='weights',
+                trainable=trainable)
             biases = tf.get_variable(
-                    initializer=tf.constant_initializer(bias),
-                    shape=out_shape,
-                    dtype=tf.float32,
-                    name='bias',
-                    trainable=trainable)
+                initializer=tf.constant_initializer(bias),
+                shape=out_shape,
+                dtype=tf.float32,
+                name='bias',
+                trainable=trainable)
         else:
             init_dict = self.initializer(init,
                                          init_file=init_file,
@@ -189,10 +189,10 @@ class ConvNet(ConvNetBase):
             if self.debug:
                 print('Dropout!')
             self.output = tf.nn.dropout(
-                    self.output, 
-                    dropout, 
-                    seed=self.seed, 
-                    name='dropout') 
+                self.output,
+                dropout,
+                seed=self.seed,
+                name='dropout')
 
         self.params = {'input': in_layer.name,
                        'type': 'fc',
@@ -229,8 +229,8 @@ def hidden_mlp(
             var_scope = desc
         else:
             var_scope = desc + str(i)
-        with tf.variable_scope('hidden_' + var_scope + hidden_name, \
-            reuse=tf.AUTO_REUSE) as scope:
+        with tf.variable_scope('hidden_' + var_scope + hidden_name,
+                               reuse=tf.AUTO_REUSE) as scope:
             if reuse_weights:
                 scope.reuse_variables()
 
@@ -244,9 +244,9 @@ def hidden_mlp(
                 my_dropout = None
             bias = cfg[desc][i].get('bias', .01)
 
-            m.fc(nf, init='xavier', 
+            m.fc(nf, init='xavier',
                  activation=my_activation,
-                 bias=bias, stddev=stddev, 
+                 bias=bias, stddev=stddev,
                  dropout=my_dropout,
                  train=train, bn_name=bn_name)
 

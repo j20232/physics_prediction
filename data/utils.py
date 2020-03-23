@@ -1,38 +1,38 @@
 import numpy as np
 import tensorflow as tf
 
+
 class Sentinel(object):
     """
     Sentinel object
     """
-    def __init__(self,
-            name):
+
+    def __init__(self, name):
         assert isinstance(name, str)
         self.name = '<' + name + '>'
 
     def __repr__(self):
         return self.name
 
+
 class Struct(object):
     """
     Converts data into struct accessible with "."
     """
+
     def __init__(self, data):
         for name, value in data.iteritems():
             setattr(self, name, self._wrap(value))
 
-
     def _wrap(self, value):
-        if isinstance(value, (tuple, list, set, frozenset)): 
+        if isinstance(value, (tuple, list, set, frozenset)):
             return type(value)([self._wrap(v) for v in value])
         else:
             return Struct(value) if isinstance(value, dict) else value
 
-
-    def __repr__(self): 
-        return 'Struct({%s})' % str(', '.join("'%s': %s" % (k, repr(v)) \
-                for (k, v) in self.__dict__.iteritems()))
-
+    def __repr__(self):
+        return 'Struct({%s})' % str(', '.join("'%s': %s" % (k, repr(v))
+                                              for (k, v) in self.__dict__.iteritems()))
 
 
 class Filter(object):
@@ -41,14 +41,13 @@ class Filter(object):
     of tensorflow tensors
     """
     str_to_token = {
-            'and': lambda left, right: tf.logical_and(left, right),
-            'or': lambda left, right: tf.logical_or(left, right),
-            'not': lambda var: tf.logical_not(var),
-            '(': '(',
-            ')': ')',
-            }
+        'and': lambda left, right: tf.logical_and(left, right),
+        'or': lambda left, right: tf.logical_or(left, right),
+        'not': lambda var: tf.logical_not(var),
+        '(': '(',
+        ')': ')',
+    }
     empty_res = True
-
 
     def __init__(self, expression):
         """Either use a logical expression to initialize Filter or
@@ -70,7 +69,6 @@ class Filter(object):
         else:
             raise Exception('Unknown initialization')
 
-
     def create_token_lst(self, expression, str_to_token=str_to_token):
         """create token list:
         'True or False' -> [True, lambda..., False]"""
@@ -88,10 +86,8 @@ class Filter(object):
         self.keys = np.unique(self.keys)
         return token_lst
 
-
     def find(self, lst, what, start=0):
         return [i for i, it in enumerate(lst) if it == what and i >= start]
-
 
     def parens(self, token_lst):
         """returns:
@@ -104,11 +100,10 @@ class Filter(object):
 
         left = left_lst[-1]
 
-        #can not occur earlier, hence there are args and op.
+        # can not occur earlier, hence there are args and op.
         right = self.find(token_lst, ')', left + 1)[0]
 
         return True, left, right
-
 
     def bool_eval(self, token_lst, data):
         """token_lst has length 3 and format: [left_arg, operator, right_arg]
@@ -137,13 +132,12 @@ class Filter(object):
 
                 return operator(lhs, rhs)
         except AssertionError:
-            raise AssertionError('Every expression has to be ' + \
-                    'encapsulated in brackets as a 3-tuple:\n' + \
-                    '(left_arg operator right_arg)\n' + \
-                    '\'not\' has to be written as:\n' + \
-                    '(not arg)\n' + \
-                    'Your given expression: %s' % self.expression)
-
+            raise AssertionError('Every expression has to be ' +
+                                 'encapsulated in brackets as a 3-tuple:\n' +
+                                 '(left_arg operator right_arg)\n' +
+                                 '\'not\' has to be written as:\n' +
+                                 '(not arg)\n' +
+                                 'Your given expression: %s' % self.expression)
 
     def formatted_bool_eval(self, token_lst, data, empty_res=empty_res):
         """eval a formatted (i.e. of the form 'ToFa(ToF)') string"""
@@ -166,7 +160,6 @@ class Filter(object):
 
         return self.formatted_bool_eval(token_lst, data, self.bool_eval)
 
-
     def eval(self, data):
         """The actual 'eval' routine,
         if 's' is empty, 'True' is returned,
@@ -176,10 +169,10 @@ class Filter(object):
             return self.func(self.data, self.keys, **self.kwargs)
         else:
             return self.formatted_bool_eval(
-                    self.token_lst, self.data)
+                self.token_lst, self.data)
 
 
-def filter_tests(): 
+def filter_tests():
     sess = tf.Session()
     data = {'a': [1, 0], 'b': [0, 1], 'c': [1, 0]}
     #data = {'a': 1, 'b': 0, 'c': 1}
@@ -187,36 +180,37 @@ def filter_tests():
     expr = 'a and b'
     f1 = Filter(expr)
     assert (sess.run(f1.eval(data)) == [False, False]).all(), '%s != %s' % \
-            (expr, [False, False])
+        (expr, [False, False])
     # Test or
     expr = 'a or b'
     f2 = Filter(expr)
     assert (sess.run(f2.eval(data)) == [True, True]).all(), '%s != %s' % \
-            (expr, [True, True])
+        (expr, [True, True])
     # Test chain
     expr = '(a and b) and c'
     f3 = Filter(expr)
     assert (sess.run(f3.eval(data)) == [False, False]).all(), '%s != %s' % \
-            (expr, [False, False])
+        (expr, [False, False])
     # Test brackets
     expr = 'a and (c and b)'
     f4 = Filter(expr)
     assert (sess.run(f4.eval(data)) == [False, False]).all(), '%s != %s' % \
-            (expr, [False, False])
+        (expr, [False, False])
     # Test nested brackets
     expr = '((a and b) or (a and (a or b)))'
     f5 = Filter(expr)
     assert (sess.run(f5.eval(data)) == [True, False]).all(), '%s != %s' % \
-            (expr, [True, False])
+        (expr, [True, False])
     # Test not
     expr = '(not (b or (not (b or a))))'
     f6 = Filter(expr)
     assert (sess.run(f6.eval(data)) == [True, False]).all(), '%s != %s' % \
-            (expr, [True, False])
+        (expr, [True, False])
     # Test func
-    f = Filter((lambda data, keys: [data[key] for key in keys], ['a', 'b', 'c']))
+    f = Filter((lambda data, keys: [data[key]
+                                    for key in keys], ['a', 'b', 'c']))
     assert f.eval(data) == [data[key] for key in ['a', 'b', 'c']], '%s != %s' % \
-            (f.eval(data), [data[key] for key in ['a', 'b', 'c']])
+        (f.eval(data), [data[key] for key in ['a', 'b', 'c']])
 
     print('FILTER TESTS PASSED')
 

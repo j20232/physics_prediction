@@ -14,7 +14,7 @@ class TrainFramework(object):
         cache_prefix = self.args.cacheDirPrefix
         if not cache_prefix:
             cache_prefix = os.path.join(os.environ['HOME'], '.model_cache')
-            
+
         self.cache_dir = os.path.join(cache_prefix, args.expId)
         os.system('mkdir -p %s' % self.cache_dir)
 
@@ -37,18 +37,18 @@ class TrainFramework(object):
 
     def build_train_op(self):
         loss_params = self.param_setter.get_loss_params()
-        input_targets = [self.inputs[key] \
-                for key in loss_params['pred_targets']]
+        input_targets = [self.inputs[key]
+                         for key in loss_params['pred_targets']]
         func = loss_params['loss_func']
         self.loss_retval = func(
-                self.outputs, 
-                *input_targets, 
-                **loss_params['loss_func_kwargs'])
+            self.outputs,
+            *input_targets,
+            **loss_params['loss_func_kwargs'])
 
         self.global_step = tf.get_variable(
-                'global_step', [],
-                dtype=tf.int64, trainable=False,
-                initializer=tf.constant_initializer(0))
+            'global_step', [],
+            dtype=tf.int64, trainable=False,
+            initializer=tf.constant_initializer(0))
         lr_rate_params = self.param_setter.get_learning_rate_params()
         func = lr_rate_params.pop('func')
         learning_rate = func(self.global_step, **lr_rate_params)
@@ -58,8 +58,8 @@ class TrainFramework(object):
         opt = func(learning_rate=learning_rate, **opt_params)
 
         self.train_op = opt.minimize(
-                self.loss_retval, 
-                global_step=self.global_step)
+            self.loss_retval,
+            global_step=self.global_step)
 
     def build_train_targets(self):
 
@@ -75,9 +75,9 @@ class TrainFramework(object):
     def build_sess_and_saver(self):
         gpu_options = tf.GPUOptions(allow_growth=True)
         sess = tf.Session(config=tf.ConfigProto(
-                allow_soft_placement=True,
-                gpu_options=gpu_options,
-                ))
+            allow_soft_placement=True,
+            gpu_options=gpu_options,
+        ))
         self.sess = sess
         self.saver = tf.train.Saver()
 
@@ -100,21 +100,21 @@ class TrainFramework(object):
             duration = time.time() - self.start_time
 
             message = 'Step {} ({:.0f} ms) -- '\
-                    .format(curr_step, 1000 * duration)
-            rep_msg = ['{}: {:.4f}'.format(k, v) \
-                    for k, v in train_res.items()
-                    if k != 'train_op']
+                .format(curr_step, 1000 * duration)
+            rep_msg = ['{}: {:.4f}'.format(k, v)
+                       for k, v in train_res.items()
+                       if k != 'train_op']
             message += ', '.join(rep_msg)
             print(message)
 
             if curr_step % self.args.fre_save == 0:
                 print('Saving model...')
                 self.saver.save(
-                        self.sess, 
-                        os.path.join(
-                            self.cache_dir,
-                            'model.ckpt'), 
-                        global_step=curr_step)
+                    self.sess,
+                    os.path.join(
+                        self.cache_dir,
+                        'model.ckpt'),
+                    global_step=curr_step)
             self.log_writer.write(message + '\n')
             if curr_step % 200 == 0:
                 self.log_writer.close()
