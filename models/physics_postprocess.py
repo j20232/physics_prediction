@@ -2,7 +2,7 @@ import copy
 import tensorflow as tf
 import numpy as np
 from itertools import product
-import cPickle
+import _pickle as cPickle
 
 
 class PhysicsPostprocess(object):

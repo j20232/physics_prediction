@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-import cPickle
+import _pickle as cPickle
 import pdb
 import copy
 from collections import OrderedDict

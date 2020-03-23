@@ -1,13 +1,11 @@
 import numpy as np
-import json
 import tensorflow as tf
 import os
-import cPickle
-import pdb
-import sys
+import _pickle as cPickle
 import copy
 
 from utils import Filter
+
 
 class SequenceNewDataProvider(object):
     '''
@@ -16,7 +14,7 @@ class SequenceNewDataProvider(object):
     This data provider uses new dataset interface in tensorflow
     '''
     def __init__(self,
-            data,
+                 data,
             enqueue_batch_size,
             sources,
             sequence_len,
@@ -208,10 +206,10 @@ class SequenceNewDataProvider(object):
                     for source,curr_dataset in file_datasets.items()}
 
         # Create dataset for both
-	def _fetch_dataset(filename):
-	    buffer_size = 8 * 1024 * 1024     # 8 MiB per file
-	    dataset = tf.data.TFRecordDataset(filename, buffer_size=buffer_size)
-	    return dataset
+        def _fetch_dataset(filename):
+            buffer_size = 8 * 1024 * 1024     # 8 MiB per file
+            dataset = tf.data.TFRecordDataset(filename, buffer_size=buffer_size)
+            return dataset
 
         each_dataset = {
                 source: curr_dataset.apply(

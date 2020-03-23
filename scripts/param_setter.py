@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 import sys
 import copy
-import cPickle as pickle
+import _pickle as pickle
 
 import utils2 as utils
 

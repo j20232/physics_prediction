@@ -1,20 +1,20 @@
 import tensorflow as tf
 import numpy as np
-import cPickle
+import _pickle as cPickle
 import pdb
 
 
 def update_cached_dict(ret_dict, key, value, update_type='append'):
     if key not in ret_dict:
-	if update_type=='update':
-	    ret_dict[key] = value
-	else:
-	    ret_dict[key] = [value]
+        if update_type == 'update':
+            ret_dict[key] = value
+        else:
+            ret_dict[key] = [value]
     else:
-	if update_type=='update':
-	    ret_dict[key] = max(ret_dict[key], value)
-	else:
-	    ret_dict[key].append(value)
+        if update_type == 'update':
+            ret_dict[key] = max(ret_dict[key], value)
+        else:
+            ret_dict[key].append(value)
 
     return ret_dict
 

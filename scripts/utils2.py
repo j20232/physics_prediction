@@ -3,7 +3,7 @@ import numpy as np
 import sys
 sys.path.append('../models')
 import interaction_model as modelsource
-import cPickle
+import _pickle as cPickle
 import tensorflow as tf
 import copy
 
